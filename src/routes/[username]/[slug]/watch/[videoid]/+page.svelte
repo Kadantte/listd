@@ -1,16 +1,23 @@
 <script lang="ts">
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
-	import ViewCount from '$/lib/ViewCount.svelte';
-	import { formatNumberCompact, formatRelativeDate } from '$/lib/utils.js';
-	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
 	import anchorme from 'anchorme';
+
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
+	import { page } from '$app/stores';
+	import ViewCount from '$/lib/components/ViewCount.svelte';
+	import { formatNumberCompact, formatRelativeDate } from '$/lib/utils.js';
+	import parseDescription from '$/lib/parseDescription.js';
+	import YouTubeVideoEmbed from '$/lib/components/YouTubeVideoEmbed.svelte';
+	import VideoPlayerStore from '$/lib/stores/VideoPlayerStore.js';
+	import { ThumbsUp } from 'lucide-svelte';
 
 	export let data;
 
 	let breadcrumbs: HTMLDivElement;
 	let videoStats: HTMLDivElement;
+	let videoWrapperElement: HTMLDivElement;
 	let descriptionVisible = false;
+	const anchorClassnames = 'text-secondary-500 underline';
 
 	$: videoPromise = data.streamed.videos.then((videos) =>
 		videos.find((v) => v.videoId === $page.params.videoid)
@@ -20,11 +27,40 @@
 		data.list.items.find((item) => item.meta.originId === video?.channelId)
 	);
 
-	afterNavigate(() => {
+	beforeNavigate((navigation) => {
+		if (navigation.from?.url.pathname === navigation.to?.url.pathname) {
+			window.history.replaceState(null, '', navigation.to?.url);
+			const seconds = navigation.to?.url.searchParams.get('t');
+			if (seconds) {
+				VideoPlayerStore.set({
+					type: 'seekTo',
+					value: Number(seconds),
+				});
+				videoWrapperElement.scrollIntoView({
+					behavior: 'smooth',
+				});
+			}
+			navigation.cancel();
+		}
+	});
+
+	afterNavigate((navigation) => {
 		breadcrumbs.scrollIntoView({
 			behavior: 'smooth',
 		});
 		descriptionVisible = false;
+		// TODO: handle back navigation and set correct video id
+		VideoPlayerStore.set({
+			type: 'setVideoId',
+			value: $page.params.videoid,
+		});
+		const seconds = navigation.to?.url.searchParams.get('t');
+		if (seconds) {
+			VideoPlayerStore.set({
+				type: 'seekTo',
+				value: Number(seconds),
+			});
+		}
 	});
 
 	const toggleDescription = () => {
@@ -59,14 +95,9 @@
 		</span>
 	{:then video}
 		{#if video}
-			<iframe
-				data-testid="video-embed"
-				class="aspect-video w-full"
-				src={`https://www.youtube.com/embed/${video?.videoId}`}
-				title="YouTube video player"
-				frameborder="0"
-				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-				allowfullscreen />
+			<div bind:this={videoWrapperElement} class="aspect-video w-full">
+				<YouTubeVideoEmbed videoId={video.videoId} />
+			</div>
 			<!-- TODO: the stuff below formatted... and scroll into view -->
 			<div class="light:text-gray-200 unstyled card p-4 text-2xl dark:text-gray-400">
 				{#await channelPromise}
@@ -86,8 +117,8 @@
 					{/if}
 				{/await}
 				<div bind:this={videoStats} class="mb-4 flex items-center gap-4">
-					<span class="variant-soft-primary chip text-2xl"
-						>{formatNumberCompact(video.likes, data.locale)} 👍</span>
+					<span class="variant-soft-primary chip flex gap-2 text-2xl"
+						>{formatNumberCompact(video.likes, data.locale)} <ThumbsUp /></span>
 					<ViewCount locale={data.locale} viewCount={video.viewCount} />
 					<span>{formatRelativeDate(video.publishedAt, data.locale)}</span>
 				</div>
@@ -98,12 +129,12 @@
 				class="light:text-gray-200 unstyled card relative mt-4 overflow-hidden whitespace-pre-wrap break-words p-4 text-2xl dark:text-gray-400">
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html anchorme({
-					input: video.description,
+					input: parseDescription(video.description, anchorClassnames),
 					options: {
 						attributes: {
 							rel: 'noopener noreferrer',
 							target: '_blank',
-							class: 'text-secondary-500 underline',
+							class: anchorClassnames,
 						},
 					},
 				})}

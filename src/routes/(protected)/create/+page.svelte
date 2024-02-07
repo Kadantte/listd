@@ -8,7 +8,7 @@
 	export let form;
 
 	$: if (form?.success) {
-		const url = `/list/${form.listId}`;
+		const url = `/${form.username}/${form.slug}`;
 		if (browser) {
 			goto(url);
 		}
@@ -17,6 +17,7 @@
 
 <Seo title="Create a List" description="Create a List" />
 <ListForm
+	formData={data.form}
 	list={undefined}
 	action="/create?/create"
 	locale={data.locale}

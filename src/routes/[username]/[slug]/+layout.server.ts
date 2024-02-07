@@ -4,10 +4,14 @@ import { get } from 'svelte/store';
 import * as YouTubeAPI from '$lib/server/YouTubeAPI';
 import { getList } from '$/lib/server/queries';
 
+// eslint-disable-next-line consistent-return
 export async function load({ params, locals }) {
 	try {
-		// TODO: handle visibility
-		const { list, channelIds } = await getList(params.id);
+		const { list, channelIds } = await getList({
+			username: params.username,
+			slug: params.slug,
+			userId: locals.session?.user?.id,
+		});
 
 		if (list) {
 			return {
@@ -22,5 +26,5 @@ export async function load({ params, locals }) {
 	}
 	setLocale(locals.locale);
 	const $LL = get(LL);
-	throw error(404, $LL.errors.notFound());
+	error(404, $LL.errors.notFound());
 }

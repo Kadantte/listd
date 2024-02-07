@@ -1,18 +1,36 @@
+
 # Today
+
+- [x] Update dependencies
+  - [x] Fix breaking changes...
+- [ ] Plan / Categorize / Prioritize features
+- [ ] Work on a feature
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Last Time
 
 - [x] Review PRs
 - [x] update dependencies
-- [ ] YouTube Embed API
-  - [ ] parse timestamps in description, link changes timestamp in video
-  - [ ] On video end, play next video
-- [ ] Icon Library
+- [x] YouTube Embed API
+  - [x] parse timestamps in description, link changes timestamp in video
 - [ ] List create UX
   - [ ] Only show channel avatar
     - [ ] Small remove button
     - [ ] Tooltip with channel name
   - [ ] Desktop styles - 2 column
     - [ ] Channel adder is on the right
-- [ ] infinite scroll / pagination on list page
+
 
 ## Later...
 

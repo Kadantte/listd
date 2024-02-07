@@ -9,7 +9,7 @@
 
 	$: if (form?.success) {
 		if (browser) {
-			const url = `/list/${form.listId}`;
+			const url = `/${form.username}/${form.slug}`;
 			goto(url);
 		}
 	}
@@ -17,7 +17,8 @@
 
 <Seo title="Edit a List" description="Edit a List" />
 <ListForm
-	action={`/edit/${data.list.id}?/update`}
+	formData={data.form}
+	action="/list/{data.list.id}/edit?/update"
 	list={data.list}
 	locale={data.locale}
 	results={form?.results}

@@ -29,6 +29,10 @@ type RootTranslation = {
 		 */
 		create: string
 		/**
+		 * V​i​e​w
+		 */
+		view: string
+		/**
 		 * E​d​i​t
 		 */
 		edit: string
@@ -44,12 +48,24 @@ type RootTranslation = {
 		 * L​o​g​i​n​ ​w​i​t​h​ ​Y​o​u​T​u​b​e
 		 */
 		loginYouTube: string
+		/**
+		 * R​e​m​o​v​e
+		 */
+		remove: string
+		/**
+		 * A​d​d
+		 */
+		add: string
 	}
 	labels: {
 		/**
 		 * T​i​t​l​e
 		 */
 		title: string
+		/**
+		 * S​l​u​g
+		 */
+		slug: string
 		/**
 		 * D​e​s​c​r​i​p​t​i​o​n
 		 */
@@ -90,6 +106,14 @@ type RootTranslation = {
 		 */
 		titleRequired: string
 		/**
+		 * S​l​u​g​ ​c​a​n​n​o​t​ ​b​e​ ​e​m​p​t​y​.
+		 */
+		slugRequired: string
+		/**
+		 * S​l​u​g​ ​c​a​n​n​o​t​ ​c​o​n​t​a​i​n​ ​s​p​e​c​i​a​l​ ​c​h​a​r​a​c​t​e​r​s
+		 */
+		slugSpecialCharacters: string
+		/**
 		 * D​e​s​c​r​i​p​t​i​o​n​ ​c​a​n​n​o​t​ ​b​e​ ​e​m​p​t​y​.
 		 */
 		descriptionRequired: string
@@ -97,6 +121,10 @@ type RootTranslation = {
 		 * N​o​t​ ​f​o​u​n​d​.
 		 */
 		notFound: string
+		/**
+		 * A​ ​l​i​s​t​ ​m​u​s​t​ ​h​a​v​e​ ​a​t​ ​l​e​a​s​t​ ​1​ ​c​h​a​n​n​e​l​.
+		 */
+		listMinLength: string
 	}
 	messages: {
 		/**
@@ -181,6 +209,10 @@ export type TranslationFunctions = {
 		 */
 		create: () => LocalizedString
 		/**
+		 * View
+		 */
+		view: () => LocalizedString
+		/**
 		 * Edit
 		 */
 		edit: () => LocalizedString
@@ -196,12 +228,24 @@ export type TranslationFunctions = {
 		 * Login with YouTube
 		 */
 		loginYouTube: () => LocalizedString
+		/**
+		 * Remove
+		 */
+		remove: () => LocalizedString
+		/**
+		 * Add
+		 */
+		add: () => LocalizedString
 	}
 	labels: {
 		/**
 		 * Title
 		 */
 		title: () => LocalizedString
+		/**
+		 * Slug
+		 */
+		slug: () => LocalizedString
 		/**
 		 * Description
 		 */
@@ -241,6 +285,14 @@ export type TranslationFunctions = {
 		 */
 		titleRequired: () => LocalizedString
 		/**
+		 * Slug cannot be empty.
+		 */
+		slugRequired: () => LocalizedString
+		/**
+		 * Slug cannot contain special characters
+		 */
+		slugSpecialCharacters: () => LocalizedString
+		/**
 		 * Description cannot be empty.
 		 */
 		descriptionRequired: () => LocalizedString
@@ -248,6 +300,10 @@ export type TranslationFunctions = {
 		 * Not found.
 		 */
 		notFound: () => LocalizedString
+		/**
+		 * A list must have at least 1 channel.
+		 */
+		listMinLength: () => LocalizedString
 	}
 	messages: {
 		/**

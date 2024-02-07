@@ -2,46 +2,56 @@ import { ListItemType, Visibility } from '@prisma/client';
 import { error as httpError, fail } from '@sveltejs/kit';
 import { LL, setLocale } from '$lib/i18n/i18n-svelte';
 import { get } from 'svelte/store';
-import { z, ZodError } from 'zod';
 import * as YouTubeAPI from '$lib/server/YouTubeAPI';
 import prismaClient from '$lib/db.server';
 import { getList } from '$/lib/server/queries';
+import { superValidate } from 'sveltekit-superforms/server';
+import { createListSchema } from '$/lib/schemas';
 
 export async function load({ params, locals }) {
-	const { list, channelIds } = await getList(params.id, locals.session?.user?.id);
+	const { list, channelIds } = await getList({
+		id: params.id,
+		userId: locals.session?.user?.id,
+	});
+	const $LL = get(LL);
+	setLocale(locals.locale);
 	if (!list) {
-		setLocale(locals.locale);
-		const $LL = get(LL);
 		throw httpError(404, $LL.errors.notFound());
 	}
+	const schema = createListSchema($LL);
+	const form = await superValidate(
+		{
+			id: list.id,
+			title: list.title,
+			slug: list.slug,
+			description: list.description || '',
+			visibility: list.visibility,
+			channelIds,
+		},
+		schema
+	);
 	return {
+		form,
 		list,
-		channelIds,
 		visibility: Visibility,
 		visibilities: Object.values(Visibility) as Visibility[],
 	};
 }
 
 export const actions = {
-	// TODO: change to update
 	update: async (event) => {
-		const $LL = get(LL);
 		setLocale(event.locals.locale);
-		const ListCreateRequestSchema = z.object({
-			title: z.string().trim().min(1, $LL.errors.titleRequired()),
-			description: z.string().trim().min(1, $LL.errors.descriptionRequired()).optional(),
-			visibility: z.nativeEnum(Visibility),
-			channelIds: z.array(z.string().trim().min(1)),
-		});
-		const formData = await event.request.formData();
-		const channels = formData.getAll('channelIds');
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const formDataObject = Object.fromEntries(formData) as any;
-		formDataObject.channelIds = channels;
+		const form = await superValidate(event.request, createListSchema(get(LL)));
+		if (!form.valid) {
+			return fail(400, { form });
+		}
 		try {
-			const { title, description, visibility, channelIds } =
-				await ListCreateRequestSchema.parseAsync(formDataObject);
-			const { id: listId } = event.params;
+			const { id: listId, title, slug, description, visibility, channelIds } = form.data;
+
+			if (!listId) {
+				throw new Error('Missing list id');
+			}
+
 			const result = await prismaClient.list.updateMany({
 				where: {
 					id: listId,
@@ -49,6 +59,7 @@ export const actions = {
 				},
 				data: {
 					title,
+					slug,
 					description,
 					visibility,
 				},
@@ -102,16 +113,14 @@ export const actions = {
 			);
 
 			return {
+				form,
 				success: true,
-				listId,
+				slug,
+				username: event.locals.session?.user?.username,
 			};
 		} catch (e) {
 			const error = e as Error;
-			let { message } = error;
-			if (error instanceof ZodError) {
-				const errorMessages = error.issues.map((issue) => issue.message);
-				message = errorMessages.join('\n');
-			}
+			const { message } = error;
 			return fail(400, { error: message });
 		}
 	},

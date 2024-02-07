@@ -2,6 +2,7 @@
 	import AvatarWithFallback from '$/lib/components/AvatarWithFallback.svelte';
 	import type { YouTubeChannelMetaAPIResponse } from '$/lib/server/YouTubeAPI';
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 
 	export let channel: YouTubeChannelMetaAPIResponse;
 	export let locale: string;
@@ -39,7 +40,11 @@
 					alt={channel.name} />
 				<div class="text-center font-bold">{channel.name}</div>
 			{:else}
-				<AvatarWithFallback avatarUrl={channel.avatarUrl} altText={channel.name} />
+				<AvatarWithFallback
+					channelId={channel.originId}
+					avatarUrl={channel.avatarUrl}
+					altText={channel.name}
+					listId={$page.params?.id} />
 				<div>
 					<div class="font-bold">{channel.name}</div>
 					<div>{channel.customUrl}</div>

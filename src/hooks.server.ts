@@ -7,6 +7,7 @@ import Google from '@auth/core/providers/google';
 import PrismaAdapter from '$lib/prisma/client';
 import { config } from '$/lib/config.server';
 import prismaClient from '$/lib/db.server';
+import { updateAccountUsername } from '$/lib/server/youtube';
 
 const handleDetectLocale = (async ({ event, resolve }) => {
 	// TODO: get lang from cookie / user setting
@@ -26,11 +27,21 @@ const handleAuth = (async (...args) => {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			Google({
+				id: 'google',
+				name: 'Google',
 				clientId: config.GOOGLE_CLIENT_ID,
 				clientSecret: config.GOOGLE_CLIENT_SECRET,
+				authorization: {
+					params: {
+						scope:
+							'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid https://www.googleapis.com/auth/youtube.readonly',
+					},
+				},
 			}),
 		],
 		callbacks: {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
 			async session({ session, user }) {
 				session.user = {
 					id: user.id,
@@ -38,27 +49,36 @@ const handleAuth = (async (...args) => {
 					email: user.email,
 					image: user.image,
 					settings: user.settings,
+					username: user.username,
 				};
 				event.locals.session = session;
 				return session;
 			},
 		},
 		events: {
+			async signIn(message) {
+				if (message.account && message.account.provider === 'google') {
+					const username = await updateAccountUsername(message.account);
+					if (event.locals.session?.user) {
+						event.locals.session.user.username = username || '@Unknown';
+					}
+				}
+			},
 			async createUser(message) {
-				const locale = await prismaClient.locale.findFirst({
-					where: {
-						id: event.locals.locale,
-					},
-				});
-
-				const settings = await prismaClient.userSettings.create({
-					data: {
-						localeId: locale?.id ?? 'en-US',
-						userId: message.user.id,
-					},
-				});
-
-				message.user.settings = settings;
+				if (!message.user.settings) {
+					const locale = await prismaClient.locale.findFirst({
+						where: {
+							id: event.locals.locale,
+						},
+					});
+					const settings = await prismaClient.userSettings.create({
+						data: {
+							localeId: locale?.id ?? 'en-US',
+							userId: message.user.id!,
+						},
+					});
+					message.user.settings = settings;
+				}
 			},
 		},
 	})(...args);
@@ -67,7 +87,7 @@ const handleAuth = (async (...args) => {
 const protectedHandle = (async ({ event, resolve }) => {
 	await event.locals.getSession();
 	if (!event.locals.session && event.route.id?.includes('(protected)')) {
-		throw redirect(302, '/');
+		redirect(302, '/');
 	}
 	return resolve(event);
 }) satisfies Handle;

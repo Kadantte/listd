@@ -9,13 +9,17 @@ const en: BaseTranslation = {
 	message: 'Hello World',
 	buttons: {
 		create: 'Create',
+		view: 'View',
 		edit: 'Edit',
 		update: 'Update',
 		logOut: 'Logout',
 		loginYouTube: 'Login with YouTube',
+		remove: 'Remove',
+		add: 'Add',
 	},
 	labels: {
 		title: 'Title',
+		slug: 'Slug',
 		description: 'Description',
 		visibility: 'Visibility',
 		views: '{0} views',
@@ -30,8 +34,11 @@ const en: BaseTranslation = {
 	},
 	errors: {
 		titleRequired: 'Title cannot be empty.',
+		slugRequired: 'Slug cannot be empty.',
+		slugSpecialCharacters: 'Slug cannot contain special characters',
 		descriptionRequired: 'Description cannot be empty.',
 		notFound: 'Not found.',
+		listMinLength: 'A list must have at least 1 channel.',
 	},
 	messages: {
 		pleaseWait: 'Please wait...',
